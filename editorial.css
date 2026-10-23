@@ -92,23 +92,40 @@
   .chapter-active .chapter-footer{margin-top:16px;padding-top:12px}
 }
 
-/* 手机端钉住两幕（竖屏：上方照片、下方文字，滚动时照片换四宫格、文字同步切换） */
+/* 手机端钉住两幕（竖屏：照片统一 3:4；第一幕单照居中在上，第二幕四宫格居左、标题居右并排） */
 @media(max-width:760px){
   .chapter-active{height:300svh}
   .chapter-active .about-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;
     padding-top:14px;padding-bottom:10px}
-  .chapter-active .chapter-heading{flex-shrink:0;margin-bottom:14px}
+  .chapter-active .chapter-heading{flex-shrink:0;margin-bottom:12px}
   .chapter-active .chapter-heading h2{font-size:clamp(30px,8.6vw,38px)}
-  .chapter-active .chapter-layout{display:block;flex:1;min-height:0;position:relative}
-  .chapter-active .chapter-cover,.chapter-active .chapter-gallery{
-    position:absolute;top:0;left:0;right:0;height:33%;aspect-ratio:auto}
-  .chapter-active .chapter-gallery{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px}
-  .chapter-active .scene-photo{aspect-ratio:auto}
-  .chapter-active .chapter-summary,.chapter-active .chapter-details{
-    position:absolute;left:0;right:0;top:calc(33% + 14px);bottom:0;display:flex;flex-direction:column;justify-content:center}
-  .chapter-active .intro,.chapter-active .chapter-details>h3{font-size:22px;line-height:1.45;margin-bottom:12px}
+  .chapter-active .chapter-layout{display:block;flex:1;min-height:0;position:relative;
+    --gap:9px;
+    --cw:min(58vw,285px);--ch:calc(var(--cw)*1.3333);
+    --gw:min(46vw,212px);--gh:calc((var(--gw) - var(--gap))*1.3333 + var(--gap))}
+  /* 第一幕：3:4 竖屏单照，水平居中（用 margin 居中，避开与 gsap 位移冲突） */
+  .chapter-active .chapter-cover{position:absolute;top:0;left:0;right:0;margin:0 auto;
+    width:var(--cw);height:var(--ch);aspect-ratio:auto;border-radius:16px}
+  /* 第二幕：四宫格 3:4 竖屏，居左 */
+  .chapter-active .chapter-gallery{position:absolute;top:0;left:0;
+    width:var(--gw);height:var(--gh);display:grid;
+    grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:var(--gap)}
+  .chapter-active .scene-photo{aspect-ratio:auto;border-radius:11px}
+  /* 第一幕文字：单照下方，居中排布 */
+  .chapter-active .chapter-summary{position:absolute;left:0;right:0;top:calc(var(--ch) + 16px);bottom:0;
+    display:flex;flex-direction:column;justify-content:center}
+  /* 第二幕文字：标题排到四宫格右侧（竖向居中），正文在四宫格下方通栏 */
+  .chapter-active .chapter-details{position:absolute;inset:0;display:flex;flex-direction:column}
+  .chapter-active .chapter-details>h3{order:0;margin:0 0 0 calc(var(--gw) + 15px);height:var(--gh);
+    display:flex;flex-direction:column;justify-content:center}
+  .chapter-active .chapter-details>.chapter-kicker{order:1;margin:16px 0 0}
+  .chapter-active .chapter-details>.chapter-story{order:2}
+  .chapter-active .chapter-details>.chapter-outlook{order:3}
+  .chapter-active .intro{font-size:21px;line-height:1.45;margin-bottom:12px}
+  .chapter-active .chapter-details>h3{font-size:21px;line-height:1.45}
   .chapter-active .chapter-lead{font-size:15px;line-height:1.8}
-  .chapter-active .chapter-kicker{font-size:11px;margin-bottom:12px}
+  .chapter-active .chapter-kicker{font-size:11px}
+  .chapter-active .chapter-summary .chapter-kicker{margin-bottom:12px}
   .chapter-active .chapter-skills{margin-top:16px;padding-top:14px}
   .chapter-active .chapter-skills>div{font-size:14px;margin-top:8px}
   .chapter-active .chapter-skills img{width:24px;height:24px}
@@ -119,17 +136,18 @@
   .chapter-active .chapter-outlook{margin-top:14px;padding-top:12px;font-size:13.5px;line-height:1.75}
   .chapter-active .chapter-footer{flex-shrink:0;margin-top:12px;padding-top:12px}
 }
-/* 小屏手机（矮窗口）：压缩字号与照片高度，保证两幕一屏完整 */
+/* 小屏手机（矮窗口）：缩小照片与字号，保证两幕一屏完整 */
 @media(max-width:760px) and (max-height:740px){
-  .chapter-active .chapter-cover,.chapter-active .chapter-gallery{height:26%}
-  .chapter-active .chapter-summary,.chapter-active .chapter-details{top:calc(26% + 10px)}
-  .chapter-active .intro,.chapter-active .chapter-details>h3{font-size:19px;margin-bottom:10px}
+  .chapter-active .chapter-layout{--cw:min(48vw,225px);--gw:min(41vw,182px)}
+  .chapter-active .intro,.chapter-active .chapter-details>h3{font-size:19px}
+  .chapter-active .intro{margin-bottom:10px}
   .chapter-active .chapter-lead{font-size:14px;line-height:1.7}
   .chapter-active .chapter-skills{margin-top:12px;padding-top:10px}
-  .chapter-active .chapter-story{padding-top:10px;margin-top:10px}
+  .chapter-active .chapter-details>.chapter-kicker{margin-top:12px}
+  .chapter-active .chapter-story{padding-top:10px;margin-top:12px}
   .chapter-active .chapter-story h4{font-size:14px}
   .chapter-active .chapter-story p,.chapter-active .chapter-outlook{font-size:12.5px;line-height:1.62}
-  .chapter-active .chapter-outlook{margin-top:10px;padding-top:10px}
+  .chapter-active .chapter-outlook{margin-top:12px;padding-top:10px}
 }
 
 /* ---------- 创作与实习（卡片叠放） ---------- */
@@ -265,7 +283,7 @@ html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){will-chang
   .practice-block .work-links .practice-film{max-width:340px}
 }
 @media(max-width:760px){
-  .about-chapter .chapter-cover{aspect-ratio:4/3}
+  .about-chapter .chapter-cover{aspect-ratio:3/4;max-width:min(64vw,320px);margin-left:auto;margin-right:auto}
   .chapter-heading{margin-bottom:36px}
   .chapter-lead{font-size:16px}
   .chapter-story p{font-size:14px}
@@ -274,6 +292,9 @@ html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){will-chang
   .experience-head{position:relative;top:auto;padding-top:0}
   .experience-head h2{margin-bottom:28px}
   .experience-list>.resume-entry{position:relative;top:auto;padding:26px 22px;border-radius:20px;margin-bottom:22px}
+  /* 修复特异性：:not(:last-child) 的 sticky 规则（0,3,0）会盖掉上面的移动端覆盖，
+     导致卡片在手机端仍钉住叠放（图五错乱）。这里用同等特异性强制回归文档流。 */
+  .experience-list>.resume-entry:not(:last-child){position:relative;top:auto;transform:none}
   .experience-list>.resume-entry>span{margin-bottom:14px}
   .experience-list h3{font-size:26px}
   .experience-list .entry-lead{font-size:16px}

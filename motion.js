@@ -68,7 +68,8 @@ window.initPortfolioMotion = function () {
    const showState=value=>{scene=value;summary.inert=!!value;summary.setAttribute('aria-hidden',String(!!value));details.inert=!value;details.setAttribute('aria-hidden',String(!value));gallery.inert=!value;gallery.setAttribute('aria-hidden',String(!value));tabs.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===value)));next.textContent=value?'继续滑动 · 创作与实习 ↓':'继续滑动 · 了解更多 ↓';};
    showState(0);
    gsap.set([details,gallery],{autoAlpha:0});
-   const timeline=gsap.timeline({defaults:{ease:'power2.inOut'},scrollTrigger:{trigger:section,start:'top top',end:'bottom bottom',scrub:.6,invalidateOnRefresh:true,snap:{snapTo:value=>value<.08?0:value>.92?1:value,duration:{min:.8,max:1.3},delay:.4,inertia:false},onUpdate:self=>{if((self.progress>.48?1:0)!==scene)showState(self.progress>.48?1:0);}}});
+   // 吸附：任何位置停下都吸附到最近的完整一幕（0=认识我 / 1=镜头之外），不再允许卡在动画中间
+   const timeline=gsap.timeline({defaults:{ease:'power2.inOut'},scrollTrigger:{trigger:section,start:'top top',end:'bottom bottom',scrub:.6,invalidateOnRefresh:true,snap:{snapTo:value=>value<.5?0:1,duration:{min:.45,max:.85},delay:.1,inertia:false},onUpdate:self=>{if((self.progress>.48?1:0)!==scene)showState(self.progress>.48?1:0);}}});
    trigger=timeline.scrollTrigger;
    timeline.to({}, {duration:.18})
     .to(section.querySelector('.chapter-cover'),{scale:.94,autoAlpha:0,duration:.44},.14)
@@ -84,13 +85,15 @@ window.initPortfolioMotion = function () {
   });
   // Stack complete experience panels; oversized panels remain readable before they stick.
   const entries=[...document.querySelectorAll('.resume-entry')];
-  const measureCards=()=>entries.forEach((card,i)=>{const heading=document.querySelector('.experience-head');const restingTop=heading.offsetHeight+24+i*12;card.style.setProperty('--stick-top',Math.min(restingTop,innerHeight-card.offsetHeight-20)+'px');card.style.zIndex=String(i+1);});
+  // 所有卡片使用同一吸附位，保证与标题间距一致；卡片即使略高于视口也会在随后的叠放中被盖住
+  const measureCards=()=>entries.forEach((card,i)=>{const heading=document.querySelector('.experience-head');const restingTop=heading.offsetHeight+24;card.style.setProperty('--stick-top',restingTop+'px');card.style.zIndex=String(i+1);});
   measureCards();
   const resizeCards=new ResizeObserver(()=>{measureCards();ScrollTrigger.refresh();});
   entries.forEach(card=>resizeCards.observe(card));
   const resize=()=>measureCards();window.addEventListener('resize',resize);
   cardCleanup=()=>{resizeCards.disconnect();window.removeEventListener('resize',resize);};
-  mm.add('(prefers-reduced-motion: no-preference)',()=>{
+  // 卡片叠放缩放只在桌面端启用；手机端回归正常文档流，避免叠放错乱
+  mm.add('(min-width: 761px) and (prefers-reduced-motion: no-preference)',()=>{
    entries.slice(0,-1).forEach((card,i)=>gsap.to(card,{scale:.965,ease:'none',scrollTrigger:{trigger:card,start:()=> 'top '+parseFloat(card.style.getPropertyValue('--stick-top'))+'px',end:()=>'+='+(card.offsetHeight+24),scrub:true,invalidateOnRefresh:true}}));
   });
   // 第三张卡完全盖住第二张的瞬间起，钉住的标题与前两张卡一起随滚动上移，整个经历区像普通文档流一样滚走（桌面端）。

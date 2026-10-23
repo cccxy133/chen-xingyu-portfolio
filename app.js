@@ -8,7 +8,7 @@ const grid = $('#film-grid');
 const cards = new Map();
 for (const [index,p] of projects.entries()) {
  const card=document.createElement('article');card.className='film-card';card.dataset.group=p.group;
- card.innerHTML=`<button class="film-image card-image" data-film="${p.id}" aria-label="播放${p.series}：${p.title}"><img src="${p.cover||`assets/${p.id}/poster.jpg`}" alt="${p.title}作品封面" loading="lazy" width="720" height="440"><span class="card-play">${p.duration}<span class="play-circle" aria-hidden="true">▶</span></span></button><div class="card-description"><div><h3>${p.title}</h3><p>${p.series} · ${p.group==='explore'?'独立完成':'团队合作'}</p></div><span aria-hidden="true">↗</span></div>`;
+ card.innerHTML=`<button class="film-image card-image" data-film="${p.id}" aria-label="播放${p.series}：${p.title}"><img src="${p.cover||`assets/${p.id}/poster.jpg`}" alt="${p.title}作品封面" loading="lazy" decoding="async" width="720" height="440"><span class="card-play">${p.duration}<span class="play-circle" aria-hidden="true">▶</span></span></button><div class="card-description"><div><h3>${p.title}</h3><p>${p.series} · ${p.group==='explore'?'独立完成':'团队合作'}</p></div><span aria-hidden="true">↗</span></div>`;
  grid.append(card);cards.set(p.id,card);
 }
 for(const button of document.querySelectorAll('[data-filter]'))button.addEventListener('click',()=>{
@@ -21,7 +21,7 @@ for(const button of document.querySelectorAll('[data-filter]'))button.addEventLi
 document.querySelectorAll('.film-collection').forEach((collection,index)=>{
  const films=collection.dataset.films.split(',').map(id=>projects.find(p=>p.id===id)).filter(Boolean);
  const name=collection.dataset.collection,railId=`film-rail-${index}`;
- collection.innerHTML=`<div class="collection-toolbar"><p>${films.length} 部作品 · 左右滑动浏览</p><div class="rail-controls"><button type="button" data-step="-1" aria-label="${name}：上一组作品" aria-controls="${railId}">←</button><button type="button" data-step="1" aria-label="${name}：下一组作品" aria-controls="${railId}">→</button></div></div><div class="film-rail" id="${railId}" tabindex="0" role="region" aria-label="${name}横向作品列表">${films.map((p,i)=>`<div class="rail-film"><button data-film="${p.id}" aria-label="在${name}经历中播放${p.title}"><img src="${p.cover||`assets/${p.id}/poster.jpg`}" alt="${p.title}作品封面" loading="lazy" width="720" height="440"><span class="rail-duration">${p.duration}</span><span class="play-circle" aria-hidden="true">▶</span></button><div class="rail-description"><div><h4>${p.title}</h4><p>${p.group==='explore'?'探索计划 · 独立完成':'微山项目 · 团队合作'}</p></div></div></div>`).join('')}</div>`;
+ collection.innerHTML=`<div class="collection-toolbar"><p>${films.length} 部作品 · 左右滑动浏览</p><div class="rail-controls"><button type="button" data-step="-1" aria-label="${name}：上一组作品" aria-controls="${railId}">←</button><button type="button" data-step="1" aria-label="${name}：下一组作品" aria-controls="${railId}">→</button></div></div><div class="film-rail" id="${railId}" tabindex="0" role="region" aria-label="${name}横向作品列表">${films.map((p,i)=>`<div class="rail-film"><button data-film="${p.id}" aria-label="在${name}经历中播放${p.title}"><img src="${p.cover||`assets/${p.id}/poster.jpg`}" alt="${p.title}作品封面" loading="lazy" decoding="async" width="720" height="440"><span class="rail-duration">${p.duration}</span><span class="play-circle" aria-hidden="true">▶</span></button><div class="rail-description"><div><h4>${p.title}</h4><p>${p.group==='explore'?'探索计划 · 独立完成':'微山项目 · 团队合作'}</p></div></div></div>`).join('')}</div>`;
  if(collection.classList.contains('compact-collection')){
   collection.querySelector('.collection-toolbar').remove();
   const pair=collection.querySelector('.film-rail');pair.classList.add('film-pair');pair.removeAttribute('tabindex');pair.setAttribute('aria-label','微山项目两部作品');return;
@@ -52,7 +52,12 @@ function startFilm(p){
  usingFallback=false;
  if(player.canPlayType('video/mp4')){playMP4(p);return;}
  if(player.canPlayType('application/vnd.apple.mpegurl')){player.src=source;player.play().catch(()=>{});}
- else if(window.Hls&&window.Hls.isSupported()){
+ else if(!window.Hls){
+  // hls.min.js（约0.5MB）不再随首屏加载：只有浏览器真的走 HLS 分支时才动态引入
+  const s=document.createElement('script');s.src='vendor/hls.min.js';
+  s.onload=()=>startFilm(p);s.onerror=()=>playMP4(p);document.head.append(s);
+ }
+ else if(window.Hls.isSupported()){
  hls=new window.Hls({maxBufferLength:20,maxMaxBufferLength:40});hls.loadSource(source);hls.attachMedia(player);
  hls.on(window.Hls.Events.MANIFEST_PARSED,()=>{if(dialog.open)player.play().catch(()=>{});});
  hls.on(window.Hls.Events.ERROR,(_,data)=>{if(data.fatal){playMP4(p);}});
