@@ -58,8 +58,8 @@ window.initPortfolioMotion = function () {
    self.add(()=>()=>{phaseObserver.disconnect();phaseTweens.forEach(t=>t.revert());});
   });first=false;
    mm=gsap.matchMedia();
-   // Two complete viewport scenes, with a reversible, shared photo/text timeline. All viewports — mobile stacks photo above text.
-   mm.add('(min-width: 0px)',()=>{
+   // Two complete scenes. Short landscape / tiny screens use the full static reading layout.
+   mm.add('(min-width: 761px) and (min-height: 720px), (min-width: 350px) and (max-width: 760px) and (min-height: 660px)',()=>{
    const section=document.querySelector('#about'),stage=section.querySelector('.about-stage');
    const summary=section.querySelector('.chapter-summary'),details=section.querySelector('.chapter-details'),gallery=section.querySelector('.chapter-gallery');
    const tabs=[...section.querySelectorAll('[data-about-step]')],next=section.querySelector('.chapter-next');
@@ -68,38 +68,113 @@ window.initPortfolioMotion = function () {
    const showState=value=>{scene=value;summary.inert=!!value;summary.setAttribute('aria-hidden',String(!!value));details.inert=!value;details.setAttribute('aria-hidden',String(!value));gallery.inert=!value;gallery.setAttribute('aria-hidden',String(!value));tabs.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===value)));next.textContent=value?'继续滑动 · 创作与实习 ↓':'继续滑动 · 了解更多 ↓';};
    showState(0);
    gsap.set([details,gallery],{autoAlpha:0});
-   // 吸附：任何位置停下都吸附到最近的完整一幕（0=认识我 / 1=镜头之外），不再允许卡在动画中间
-   const timeline=gsap.timeline({defaults:{ease:'power2.inOut'},scrollTrigger:{trigger:section,start:'top top',end:'bottom bottom',scrub:.6,invalidateOnRefresh:true,snap:{snapTo:value=>value<.5?0:1,duration:{min:.45,max:.85},delay:.1,inertia:false},onUpdate:self=>{if((self.progress>.48?1:0)!==scene)showState(self.progress>.48?1:0);}}});
-   trigger=timeline.scrollTrigger;
-   timeline.to({}, {duration:.18})
-    .to(section.querySelector('.chapter-cover'),{scale:.94,autoAlpha:0,duration:.44},.14)
-    .to(summary,{y:-16,autoAlpha:0,duration:.34},.14)
-    .to(gallery,{autoAlpha:1,duration:.38},.4)
-    .fromTo(section.querySelectorAll('.scene-photo'),{y:24,scale:.96},{y:0,scale:1,duration:.44,stagger:.04},.4)
-    .fromTo(details,{y:18,autoAlpha:0},{y:0,autoAlpha:1,duration:.44},.44)
-    .to({}, {duration:.05},.95);
-   const go=index=>{const y=index===2?document.querySelector('#experience').getBoundingClientRect().top+scrollY:trigger.start+(trigger.end-trigger.start)*index;if(lenis)lenis.scrollTo(y,{duration:1.7,lock:true});else window.scrollTo({top:y,behavior:'smooth'});};
+   // A scroll gesture starts a complete transition; pausing never freezes a half-visible scene.
+   const cover=section.querySelector('.chapter-cover'),layout=section.querySelector('.chapter-layout');
+   const heading=section.querySelector('.chapter-heading'),footer=section.querySelector('.chapter-footer');
+   let stageHeight=innerHeight;
+   const measureScene=()=>{
+    const viewport=document.documentElement.clientHeight;
+    const mobile=matchMedia('(max-width:760px)').matches;
+    const css=getComputedStyle(stage);
+    const outside=heading.offsetHeight+parseFloat(getComputedStyle(heading).marginBottom)+footer.offsetHeight+parseFloat(getComputedStyle(footer).marginTop)+parseFloat(css.paddingTop)+parseFloat(css.paddingBottom);
+    const copyHeight=Math.max(summary.scrollHeight,details.scrollHeight);
+    let photoHeight=0;
+    if(mobile){
+     photoHeight=Math.max(220,Math.min(viewport*.37,330,viewport-outside-copyHeight-24));
+     layout.style.setProperty('--ph',photoHeight+'px');
+    }
+    stageHeight=Math.ceil(Math.max(viewport,outside+copyHeight+(mobile?photoHeight+24:0)+4));
+    section.style.setProperty('--scene-height',stageHeight+'px');
+    section.style.setProperty('--scene-top',Math.min(0,viewport-stageHeight)+'px');
+    section.style.setProperty('--scene-travel',Math.max(460,viewport*.8)+'px');
+   };
+   measureScene();
+   const timeline=gsap.timeline({paused:true,defaults:{ease:'power2.inOut'}});
+   timeline.to(cover,{scale:.97,autoAlpha:0,duration:.65},0)
+    .to(summary,{y:-12,autoAlpha:0,duration:.5},0)
+    .to(gallery,{autoAlpha:1,duration:.75},.3)
+    .fromTo(section.querySelectorAll('.scene-photo'),{y:16,scale:.98},{y:0,scale:1,duration:.8,stagger:.05},.3)
+    .fromTo(details,{y:14,autoAlpha:0},{y:0,autoAlpha:1,duration:.8},.35);
+   const chapterTop=()=>section.getBoundingClientRect().top+scrollY;
+   const insideChapter=()=>scrollY>=chapterTop()-2&&scrollY<=chapterTop()+section.offsetHeight-innerHeight+2;
+   let transitioning=false,touchY=null,touchHeld=false,heldY=null,holdUntil=0,releaseTimer=0,lastScroll=scrollY;
+   const release=()=>{clearTimeout(releaseTimer);const wait=holdUntil-performance.now();if(wait>0){releaseTimer=setTimeout(release,wait);return;}transitioning=false;heldY=null;if(!document.querySelector('#player-dialog').open)lenis?.start();};
+   timeline.eventCallback('onComplete',release);
+   timeline.eventCallback('onReverseComplete',release);
+   const changeScene=(value,rewind=false)=>{
+    if(value===scene)return;
+    if(value&&matchMedia('(max-width:760px)').matches&&stageHeight>innerHeight+24&&insideChapter())rewind=true;
+    transitioning=true;holdUntil=performance.now()+1350;heldY=rewind?chapterTop():scrollY;showState(value);lenis?.stop();
+    if(rewind){
+     const y=section.getBoundingClientRect().top+scrollY;
+     if(lenis)lenis.scrollTo(y,{immediate:true,force:true});else window.scrollTo({top:y,behavior:'instant'});
+    }
+    if(value)timeline.play();else timeline.reverse();
+   };
+   const holdScroll=()=>{
+    if(transitioning&&heldY!==null&&Math.abs(scrollY-heldY)>1)window.scrollTo({top:heldY,behavior:'instant'});
+   };
+   window.addEventListener('scroll',holdScroll,{passive:true});
+   const updateScene=self=>{
+    const y=self.scroll(),previous=lastScroll;lastScroll=y;
+    if(transitioning){holdScroll();return;}
+    const distance=y-self.start;
+    if(scene===1&&y<previous-1&&previous>=chapterTop()-2&&previous<=self.end+2){changeScene(0,true);return;}
+    if(scene===0&&distance>56)changeScene(1);
+    else if(scene===1&&y<chapterTop()-20)changeScene(0);
+   };
+   trigger=ScrollTrigger.create({trigger:section,start:()=> 'top+=' + Math.max(0,stageHeight-innerHeight)+' top',end:'bottom bottom',onUpdate:updateScene,onRefresh:updateScene});
+   // Consume the return gesture while this chapter is docked, before native scroll can leave it.
+   const handleDirection=(delta,event)=>{
+    if(transitioning||touchHeld){event.preventDefault();return;}
+    if(scene===1&&delta<-2&&insideChapter()){
+     event.preventDefault();changeScene(0,true);
+     if(event.type==='touchmove')touchHeld=true;
+    }
+   };
+   const wheel=e=>{if(!e.ctrlKey&&Math.abs(e.deltaY)>Math.abs(e.deltaX))handleDirection(e.deltaY,e);};
+   const touchStart=e=>{touchHeld=false;touchY=e.touches.length===1?e.touches[0].clientY:null;};
+   const touchMove=e=>{if(touchY===null||e.touches.length!==1)return;const y=e.touches[0].clientY;handleDirection(touchY-y,e);touchY=y;};
+   const touchEnd=()=>{touchHeld=false;touchY=null;};
+   const keyboard=e=>{if(e.target.closest('input,textarea,select,[contenteditable]'))return;if(['ArrowUp','PageUp'].includes(e.key)||(e.key===' '&&e.shiftKey))handleDirection(-40,e);};
+   window.addEventListener('wheel',wheel,{passive:false,capture:true});
+   window.addEventListener('touchstart',touchStart,{passive:true});
+   window.addEventListener('touchmove',touchMove,{passive:false,capture:true});
+   window.addEventListener('touchend',touchEnd);window.addEventListener('touchcancel',touchEnd);
+   window.addEventListener('keydown',keyboard,{capture:true});
+   let resizeFrame=0;
+   const resizeScene=()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{measureScene();ScrollTrigger.refresh();});};
+   const copyObserver=new ResizeObserver(resizeScene);
+   [summary,details].forEach(el=>copyObserver.observe(el));
+   window.addEventListener('resize',resizeScene);
+   const go=index=>{if(transitioning)return;if(index===0&&scene===1){changeScene(0,true);return;}const y=index===2?document.querySelector('#experience').getBoundingClientRect().top+scrollY:index===1?trigger.start+96:section.getBoundingClientRect().top+scrollY;if(lenis)lenis.scrollTo(y,{duration:1.2,lock:true});else window.scrollTo({top:y,behavior:'smooth'});};
    const handlers=tabs.map((b,i)=>{const fn=()=>go(i);b.addEventListener('click',fn);return fn;});
    const forward=()=>go(scene?2:1);next.addEventListener('click',forward);
-   return()=>{section.classList.remove('chapter-active');[summary,details,gallery].forEach(el=>{el.inert=false;el.removeAttribute('aria-hidden');});tabs.forEach((b,i)=>b.removeEventListener('click',handlers[i]));next.removeEventListener('click',forward);};
+   return()=>{holdUntil=0;clearTimeout(releaseTimer);window.removeEventListener('scroll',holdScroll);window.removeEventListener('wheel',wheel,true);window.removeEventListener('touchstart',touchStart);window.removeEventListener('touchmove',touchMove,true);window.removeEventListener('touchend',touchEnd);window.removeEventListener('touchcancel',touchEnd);window.removeEventListener('keydown',keyboard,true);release();copyObserver.disconnect();window.removeEventListener('resize',resizeScene);cancelAnimationFrame(resizeFrame);['--scene-height','--scene-top','--scene-travel'].forEach(name=>section.style.removeProperty(name));layout.style.removeProperty('--ph');section.classList.remove('chapter-active');[summary,details,gallery].forEach(el=>{el.inert=false;el.removeAttribute('aria-hidden');});tabs.forEach((b,i)=>b.removeEventListener('click',handlers[i]));next.removeEventListener('click',forward);};
   });
   // Stack complete experience panels; oversized panels remain readable before they stick.
   const entries=[...document.querySelectorAll('.resume-entry')];
   // 所有卡片使用同一吸附位，保证与标题间距一致；卡片即使略高于视口也会在随后的叠放中被盖住
-  const measureCards=()=>entries.forEach((card,i)=>{const heading=document.querySelector('.experience-head');const restingTop=heading.offsetHeight+24;card.style.setProperty('--stick-top',restingTop+'px');card.style.zIndex=String(i+1);});
+  const measureCards=()=>entries.forEach((card,i)=>{const heading=document.querySelector('.experience-head');const restingTop=matchMedia('(max-width:760px)').matches?Math.min(heading.offsetHeight+24,innerHeight-card.offsetHeight-24):heading.offsetHeight+24;card.style.setProperty('--stick-top',restingTop+'px');card.style.zIndex=String(i+1);});
   measureCards();
   const resizeCards=new ResizeObserver(()=>{measureCards();ScrollTrigger.refresh();});
   entries.forEach(card=>resizeCards.observe(card));
   const resize=()=>measureCards();window.addEventListener('resize',resize);
   cardCleanup=()=>{resizeCards.disconnect();window.removeEventListener('resize',resize);};
-  // 卡片叠放缩放只在桌面端启用；手机端回归正常文档流，避免叠放错乱
-  mm.add('(min-width: 761px) and (prefers-reduced-motion: no-preference)',()=>{
-   entries.slice(0,-1).forEach((card,i)=>gsap.to(card,{scale:.965,ease:'none',scrollTrigger:{trigger:card,start:()=> 'top '+parseFloat(card.style.getPropertyValue('--stick-top'))+'px',end:()=>'+='+(card.offsetHeight+24),scrub:true,invalidateOnRefresh:true}}));
+  // 卡片叠放：被覆盖的卡在上方的卡盖进来时微微上移露出边缘（触发器是“下一张卡”，不是自身），
+  // 活动卡与标题间距一致；先露出前卡边缘，再接续整体退场；手机端按文档流阅读。
+  mm.add('(min-width: 761px) and (min-height: 720px), (max-width: 760px)',()=>{
+   entries.slice(0,-1).forEach((card,i)=>{
+    const next=entries[i+1];
+    gsap.to(card,{scale:.97,y:-16,ease:'none',
+     scrollTrigger:{trigger:next,start:()=> 'top '+(parseFloat(card.style.getPropertyValue('--stick-top'))+Math.min(340,innerHeight*.4))+'px',
+      end:()=> 'top '+parseFloat(card.style.getPropertyValue('--stick-top'))+'px',scrub:true,invalidateOnRefresh:true}});
+   });
   });
   // 第三张卡完全盖住第二张的瞬间起，钉住的标题与前两张卡一起随滚动上移，整个经历区像普通文档流一样滚走（桌面端）。
-  mm.add('(min-width: 761px)',()=>{
+  mm.add('(min-width: 761px) and (min-height: 720px), (max-width: 760px)',()=>{
    const head=document.querySelector('.experience-head'),last=entries[entries.length-1],coverTop=()=>parseFloat(entries[entries.length-2].style.getPropertyValue('--stick-top')),stack=[head,...entries.slice(0,-1)];
-   gsap.to(stack,{y:()=>-(head.offsetHeight+80),ease:'none',scrollTrigger:{trigger:last,start:()=> 'top '+coverTop()+'px',end:()=>'+='+(head.offsetHeight+80),scrub:true,invalidateOnRefresh:true}});
+   gsap.fromTo(stack,{y:i=>i?-16:0},{y:()=>-(head.offsetHeight+80),immediateRender:false,ease:'none',scrollTrigger:{trigger:last,start:()=> 'top '+coverTop()+'px',end:()=>'+='+(head.offsetHeight+80),scrub:true,invalidateOnRefresh:true}});
   });
   mm.add('(pointer:fine) and (prefers-reduced-motion: no-preference)',()=>{
    const face=document.querySelector('.avatar-face'),pupils=[...document.querySelectorAll('.gaze-pupil')],lids=document.querySelectorAll('.eye-lid');

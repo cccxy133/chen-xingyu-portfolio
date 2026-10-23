@@ -1,7 +1,7 @@
 /* ============================================================
    章节样式：关于我（两幕）/ 创作与实习（卡片叠放）/ 作品列表 / 相册
    基础为静态布局（移动端、动效关闭时内容完整呈现）；
-   ≥761px 且开启动效时由 JS 加 .chapter-active 切换为钉住两幕。
+   足够高的视口开启动效时由 JS 加 .chapter-active；矮窗口回到完整静态阅读。
    ============================================================ */
 
 /* ---------- 关于我 ---------- */
@@ -64,8 +64,8 @@
 
 /* 桌面钉住两幕（JS 在 ≥761px 且动效开启时添加 .chapter-active） */
 @media(min-width:761px){
-  .chapter-active{height:300svh}
-  .chapter-active .about-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;
+  .chapter-active{height:300svh;height:300dvh}
+  .chapter-active .about-stage{position:sticky;top:0;height:100svh;height:100dvh;display:flex;flex-direction:column;
     padding-top:28px;padding-bottom:20px}
   .chapter-active .chapter-heading{flex-shrink:0;margin-bottom:28px}
   .chapter-active .chapter-layout{display:block;flex:1;min-height:0;position:relative}
@@ -92,37 +92,27 @@
   .chapter-active .chapter-footer{margin-top:16px;padding-top:12px}
 }
 
-/* 手机端钉住两幕（竖屏：照片统一 3:4；第一幕单照居中在上，第二幕四宫格居左、标题居右并排） */
+/* 手机端钉住两幕（横图 4:3 在上、文字在下，两幕均保证一屏完整展示，不裁切文字） */
 @media(max-width:760px){
-  .chapter-active{height:300svh}
-  .chapter-active .about-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;
+  .chapter-active{height:300svh;height:300dvh}
+  .chapter-active .about-stage{position:sticky;top:0;height:100svh;height:100dvh;display:flex;flex-direction:column;
     padding-top:14px;padding-bottom:10px}
-  .chapter-active .chapter-heading{flex-shrink:0;margin-bottom:12px}
-  .chapter-active .chapter-heading h2{font-size:clamp(30px,8.6vw,38px)}
+  .chapter-active .chapter-heading{flex-shrink:0;margin-bottom:10px}
+  .chapter-active .chapter-heading h2{font-size:clamp(28px,8vw,36px)}
   .chapter-active .chapter-layout{display:block;flex:1;min-height:0;position:relative;
-    --gap:9px;
-    --cw:min(58vw,285px);--ch:calc(var(--cw)*1.3333);
-    --gw:min(46vw,212px);--gh:calc((var(--gw) - var(--gap))*1.3333 + var(--gap))}
-  /* 第一幕：3:4 竖屏单照，水平居中（用 margin 居中，避开与 gsap 位移冲突） */
+    --gap:8px;
+    --ph:min(29svh,290px)}
+  /* 两幕照片区：通栏横图 4:3，顶部对齐（第一幕单照居中，第二幕四宫格 2×2） */
   .chapter-active .chapter-cover{position:absolute;top:0;left:0;right:0;margin:0 auto;
-    width:var(--cw);height:var(--ch);aspect-ratio:auto;border-radius:16px}
-  /* 第二幕：四宫格 3:4 竖屏，居左 */
-  .chapter-active .chapter-gallery{position:absolute;top:0;left:0;
-    width:var(--gw);height:var(--gh);display:grid;
+    height:var(--ph);width:calc(var(--ph)*1.3333);max-width:100%;aspect-ratio:auto;border-radius:14px}
+  .chapter-active .chapter-gallery{position:absolute;top:0;left:0;right:0;height:var(--ph);display:grid;
     grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:var(--gap)}
-  .chapter-active .scene-photo{aspect-ratio:auto;border-radius:11px}
-  /* 第一幕文字：单照下方，居中排布 */
-  .chapter-active .chapter-summary{position:absolute;left:0;right:0;top:calc(var(--ch) + 16px);bottom:0;
-    display:flex;flex-direction:column;justify-content:center}
-  /* 第二幕文字：标题排到四宫格右侧（竖向居中），正文在四宫格下方通栏 */
-  .chapter-active .chapter-details{position:absolute;inset:0;display:flex;flex-direction:column}
-  .chapter-active .chapter-details>h3{order:0;margin:0 0 0 calc(var(--gw) + 15px);height:var(--gh);
-    display:flex;flex-direction:column;justify-content:center}
-  .chapter-active .chapter-details>.chapter-kicker{order:1;margin:16px 0 0}
-  .chapter-active .chapter-details>.chapter-story{order:2}
-  .chapter-active .chapter-details>.chapter-outlook{order:3}
+  .chapter-active .scene-photo{aspect-ratio:auto;border-radius:10px}
+  /* 两幕文字区：照片下方通栏，垂直居中 */
+  .chapter-active .chapter-summary,.chapter-active .chapter-details{position:absolute;left:0;right:0;
+    top:calc(var(--ph) + 14px);bottom:0;display:flex;flex-direction:column;justify-content:center}
   .chapter-active .intro{font-size:21px;line-height:1.45;margin-bottom:12px}
-  .chapter-active .chapter-details>h3{font-size:21px;line-height:1.45}
+  .chapter-active .chapter-details>h3{font-size:21px;line-height:1.45;margin-bottom:12px}
   .chapter-active .chapter-lead{font-size:15px;line-height:1.8}
   .chapter-active .chapter-kicker{font-size:11px}
   .chapter-active .chapter-summary .chapter-kicker{margin-bottom:12px}
@@ -136,14 +126,12 @@
   .chapter-active .chapter-outlook{margin-top:14px;padding-top:12px;font-size:13.5px;line-height:1.75}
   .chapter-active .chapter-footer{flex-shrink:0;margin-top:12px;padding-top:12px}
 }
-/* 小屏手机（矮窗口）：缩小照片与字号，保证两幕一屏完整 */
+/* 小屏手机（矮窗口）：压缩照片区与字号，保证两幕一屏完整 */
 @media(max-width:760px) and (max-height:740px){
-  .chapter-active .chapter-layout{--cw:min(48vw,225px);--gw:min(41vw,182px)}
-  .chapter-active .intro,.chapter-active .chapter-details>h3{font-size:19px}
-  .chapter-active .intro{margin-bottom:10px}
+  .chapter-active .chapter-layout{--ph:min(24svh,220px)}
+  .chapter-active .intro,.chapter-active .chapter-details>h3{font-size:19px;margin-bottom:10px}
   .chapter-active .chapter-lead{font-size:14px;line-height:1.7}
   .chapter-active .chapter-skills{margin-top:12px;padding-top:10px}
-  .chapter-active .chapter-details>.chapter-kicker{margin-top:12px}
   .chapter-active .chapter-story{padding-top:10px;margin-top:12px}
   .chapter-active .chapter-story h4{font-size:14px}
   .chapter-active .chapter-story p,.chapter-active .chapter-outlook{font-size:12.5px;line-height:1.62}
@@ -325,3 +313,63 @@ html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){will-chang
 }
 .motion-off .scene-photo img,.motion-off .scene-photo:after{transition:none}
 @media(prefers-reduced-motion:reduce){.scene-photo img,.scene-photo:after{transition:none}}
+
+/* Completed scenes: remove section padding from the sticky scroll range. */
+.about-chapter.chapter-active{padding-top:0;padding-bottom:0;height:calc(var(--scene-height,100svh) + var(--scene-travel,80svh))}
+.chapter-active .about-stage{height:var(--scene-height,100svh);top:var(--scene-top,0px)}
+.chapter-active .chapter-summary,.chapter-active .chapter-details{bottom:auto;height:auto;min-height:0}
+@media(min-width:761px){
+ .chapter-active .chapter-summary,.chapter-active .chapter-details{top:50%;translate:0 -50%}
+}
+@media(max-width:760px){
+ .chapter-active .chapter-cover{width:100%;max-width:100%;aspect-ratio:auto;margin:0}
+ .chapter-active .chapter-cover>img{object-position:50% 58%}
+ .chapter-active .chapter-summary,.chapter-active .chapter-details{top:calc(var(--ph) + 16px);justify-content:flex-start;text-align:left}
+ .chapter-active .chapter-heading{align-items:center;gap:12px}
+ .chapter-active .chapter-heading .eyebrow{font-size:10px;margin-bottom:6px}
+ .chapter-active .chapter-tabs{gap:16px;flex-shrink:0}
+ .chapter-active .chapter-tabs button{font-size:12px}
+ .chapter-active .chapter-details .chapter-kicker{margin-bottom:8px}
+ .chapter-active .chapter-footer{gap:8px;text-align:left}
+ .chapter-active .chapter-footer>span{font-size:10px}
+ .chapter-active .chapter-next{font-size:12px}
+ .about-chapter:not(.chapter-active) .chapter-cover{aspect-ratio:4/3;max-width:100%;width:100%}
+}
+/* Keep the two shorter cards readable on laptop-height windows. */
+@media(min-width:761px) and (max-height:850px){
+ .experience-head{padding-top:16px}
+ .experience-head .eyebrow{margin-bottom:12px}
+ .experience-head h2{font-size:48px;padding-bottom:10px;margin-bottom:24px}
+ .experience-list>.resume-entry{padding:28px 34px}
+ .experience-list h3{font-size:30px}
+ .film-rail .rail-film{flex-basis:224px}
+}
+@media(min-width:761px) and (max-height:719px){
+ .experience-head,.experience-list>.resume-entry:not(:last-child){position:relative;top:auto}
+}
+
+/* Mobile revision: landscape 4:3 frames and spacious, larger software labels. */
+@media(max-width:760px){
+ .chapter-active .chapter-cover{height:auto;bottom:auto;width:calc(var(--ph)*4/3);max-width:100%;aspect-ratio:4/3;margin:0 auto}
+ .chapter-active .chapter-gallery{height:auto;bottom:auto;width:calc((var(--ph) - var(--gap))*4/3 + var(--gap));max-width:100%;margin:0 auto;grid-template-rows:auto auto}
+ .chapter-active .scene-photo{aspect-ratio:4/3;min-height:0}
+ .chapter-active .chapter-summary,.chapter-active .chapter-details{top:calc(var(--ph) + 24px)}
+ .about-chapter:not(.chapter-active) .chapter-cover{aspect-ratio:4/3;width:100%;margin-inline:auto}
+ .about-chapter .scene-photo{aspect-ratio:4/3}
+ .about-chapter .chapter-skills{margin-top:24px;padding-top:20px}
+ .about-chapter .chapter-skills>div{font-size:21px;gap:14px;margin-top:16px;line-height:1.45;display:grid;grid-template-columns:36px 1fr}
+ .about-chapter .chapter-skills img{width:36px;height:36px;grid-column:1;grid-row:1/3}
+ .about-chapter .chapter-skills small{font-size:19.5px;grid-column:2;line-height:1.45}
+ .about-chapter .chapter-skills>div>span{grid-column:2}
+ html:not(.motion-off) .experience-head{position:sticky;top:0;padding-top:14px;z-index:5}
+ .experience-head h2{font-size:34px;margin-bottom:24px;padding-bottom:10px}
+ .experience-head .eyebrow{font-size:10px;margin-bottom:12px}
+ html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){position:sticky;top:var(--stick-top);transform-origin:50% 0}
+}
+@media(max-width:760px) and (prefers-reduced-motion:reduce){
+ html:not(.motion-off) .experience-head,html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){position:relative;top:auto}
+}
+
+@media(max-width:760px){
+ .chapter-active .chapter-cover figcaption{font-size:12px;line-height:1.6;left:12px;right:12px;bottom:14px}
+}
