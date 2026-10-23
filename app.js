@@ -4,6 +4,23 @@ const projects = window.portfolioProjects;
 let motion;
 const $ = s => document.querySelector(s);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+// 关于我章节图片延迟加载：首屏只加载头像+影像墙封面，滚动接近 #about 时才真正加载照片/图标。
+// （这些图在移动端是 absolute 定位，浏览器原生 loading="lazy" 会因无法判位而提前加载，故用 JS 主动控制）
+(() => {
+  const about = document.querySelector('#about');
+  if (!about) return;
+  const imgs = [...about.querySelectorAll('img[data-src]')];
+  if (!imgs.length) return;
+  const load = img => { if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; } };
+  // 若 IntersectionObserver 不可用（极老浏览器），直接全部加载兜底
+  if (!('IntersectionObserver' in window)) { imgs.forEach(load); return; }
+  // 只在「关于我」章节真正滚入视口时加载，rootMargin 收窄避免首屏误触发
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { load(e.target); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px 0px 0px' });
+  imgs.forEach(img => io.observe(img));
+})();
+
 const grid = $('#film-grid');
 const cards = new Map();
 for (const [index,p] of projects.entries()) {
