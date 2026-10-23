@@ -1,0 +1,11 @@
+window.portfolioProjects = [
+ {id:'hongkong',cover:'assets/hongkong/cover.jpg',title:'香港',en:'HONG KONG',series:'探索计划',group:'explore',duration:'00:24',role:'独立完成',description:'从维港的日光，到城市的夜色与烟花。用一支短片，收藏香港的不同切面。',detail:'探索计划是我的个人抖音系列。香港篇由我独立完成，以出镜开场，连接城市景观与夜间烟花。'},
+ {id:'maclehose',cover:'assets/maclehose/cover.jpg',title:'麦理浩径',en:'MACLEHOSE TRAIL',series:'探索计划',group:'explore',duration:'00:22',role:'独立完成',description:'沿着山与海，走进麦理浩径。',detail:'个人系列「探索计划」中的麦理浩径篇，由我独立完成。从山海间的出镜介绍出发，连接海湾航拍、沙滩与步道画面。'},
+ {id:'qingdao',cover:'assets/qingdao/cover-seabreeze.jpg',title:'青岛',en:'QINGDAO',series:'探索计划',group:'explore',duration:'00:28',role:'独立完成',description:'海岸、红瓦与日落，从熟悉的城市开始探索。',detail:'个人系列「探索计划」中的青岛篇，由我独立完成。海边出镜、城市远景与落日画面共同组成这次记录。'},
+ {id:'island',cover:'assets/island/cover.jpg',title:'灵山岛',en:'LINGSHAN ISLAND',series:'探索计划',group:'explore',duration:'00:23',role:'独立完成',description:'沿着海岸线，走进岛屿的日常。',detail:'个人系列「探索计划」中的灵山岛篇，由我独立完成。画面连接海岛村落、海岸公路与防波堤。'},
+ {id:'changsha',cover:'assets/changsha/cover.jpg',title:'长沙',en:'CHANGSHA',series:'探索计划',group:'explore',duration:'00:16',role:'独立完成',description:'江面、日落与街头，在短暂旅途中收集城市印象。',detail:'个人系列「探索计划」中的长沙篇，由我独立完成。从出镜介绍进入城市风景，以紧凑的篇幅记录旅行。'},
+ {id:'carp',cover:'assets/carp/cover.jpg',title:'香辣鲤鱼',en:'A TASTE OF WEISHAN',series:'舌尖上的微山',group:'weishan',duration:'00:53',role:'团队合作 · 宣传组组长',description:'一道菜从案板走向餐桌，也是一次走近微山生活的过程。',detail:'清华大学乡村振兴工作站赴山东济宁微山支队团队作品。担任宣传组组长，参与策划、拍摄、剪辑、调色及声音制作。短片记录香辣鲤鱼从备料、烹饪到上桌的过程。'},
+ {id:'heritage',cover:'assets/heritage/cover.jpg',title:'非遗采访',en:'STORIES BEHIND THE CRAFT',series:'微山项目',group:'weishan',duration:'03:56',role:'团队合作 · 宣传组组长',description:'从对话与手艺细节中，认识当地的非遗故事。',detail:'清华大学乡村振兴工作站赴山东济宁微山支队团队作品。担任宣传组组长，参与策划、拍摄、剪辑、调色及声音制作。影片以人物访谈与手工作品的细节呈现非遗故事。'},
+ {id:'winter',cover:'assets/winter/cover.jpg',title:'微山 · 冬日纪事',en:'WEISHAN IN WINTER',series:'2026 寒假支队总结',group:'weishan',duration:'04:40',role:'团队合作 · 宣传组组长',description:'走访、课堂与共同生活，把实践中的相遇留在影像里。',detail:'2026 年寒假微山实践总结作品。清华大学乡村振兴工作站赴山东济宁微山支队团队作品。担任宣传组组长，参与策划、拍摄、剪辑、调色及声音制作。'},
+ {id:'summer',cover:'assets/summer/cover.jpg',title:'微山 · 夏日相遇',en:'WEISHAN IN SUMMER',series:'2025 暑期支队总结',group:'weishan',duration:'02:12',role:'团队合作 · 宣传组组长',description:'一次次走访与交流，汇成属于这个夏天的共同记忆。',detail:'原片：2025 暑期山东微山支队总结视频。清华大学乡村振兴工作站赴山东济宁微山支队团队作品。担任宣传组组长，参与策划、拍摄、剪辑、调色及声音制作。'}
+];

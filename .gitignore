@@ -1,0 +1,10 @@
+.DS_Store
+._*
+*.log
+node_modules/
+.env
+
+# HLS 切片：app.js 优先走 film.mp4（canPlayType('video/mp4') 恒为真），
+# 这部分 .ts/.m3u8 实际从未被加载，不进仓库以缩小体积（本地文件保留）
+assets/*/part-*.ts
+assets/*/film.m3u8
