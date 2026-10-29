@@ -60,45 +60,11 @@ phaseButtons.forEach(b=>b.addEventListener('click',()=>showPhase(Number(b.datase
 practiceRail.addEventListener('scroll',()=>{const index=Math.round(practiceRail.scrollLeft/(practiceRail.firstElementChild.offsetWidth+18));phaseButtons.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===index)));},{passive:true});
 practiceRail.addEventListener('keydown',e=>{if(e.target!==practiceRail)return;if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();showPhase(e.key==='ArrowRight'?1:0);}});
 
-const dialog=$('#player-dialog'),player=$('#film-player');
-let hls=null,current=null,lastFocus=null,usingFallback=false;
-function cleanupPlayer(){player.pause();if(hls){hls.destroy();hls=null;}player.removeAttribute('src');player.load();}
-function startFilm(p){
- cleanupPlayer();$('#player-error').hidden=true;player.poster=p.cover||`assets/${p.id}/poster.jpg`;
- const source=`assets/${p.id}/film.m3u8`;
- usingFallback=false;
- if(player.canPlayType('video/mp4')){playMP4(p);return;}
- if(player.canPlayType('application/vnd.apple.mpegurl')){player.src=source;player.play().catch(()=>{});}
- else if(!window.Hls){
-  // hls.min.js（约0.5MB）不再随首屏加载：只有浏览器真的走 HLS 分支时才动态引入
-  const s=document.createElement('script');s.src='vendor/hls.min.js';
-  s.onload=()=>startFilm(p);s.onerror=()=>playMP4(p);document.head.append(s);
- }
- else if(window.Hls.isSupported()){
- hls=new window.Hls({maxBufferLength:20,maxMaxBufferLength:40});hls.loadSource(source);hls.attachMedia(player);
- hls.on(window.Hls.Events.MANIFEST_PARSED,()=>{if(dialog.open)player.play().catch(()=>{});});
- hls.on(window.Hls.Events.ERROR,(_,data)=>{if(data.fatal){playMP4(p);}});
- }else{playMP4(p);}
-}
-function playMP4(p){
- if(hls){hls.destroy();hls=null;}
- usingFallback=true;
- player.src=`assets/${p.id}/film.mp4`;
- player.load();
- if(dialog.open)player.play().catch(()=>{});
-}
-function openFilm(id){
- const p=projects.find(p=>p.id===id);if(!p)return;
- current=p;lastFocus=document.activeElement;
- $('#player-title').textContent=p.title;$('#player-kicker').textContent=`${p.series} / ${p.en} / ${p.duration}`;$('#player-role').textContent=p.role;$('#player-description').textContent=p.detail;
- if(!dialog.open)dialog.showModal();document.body.classList.add('modal-open');motion?.stop();startFilm(p);$('#close-player').focus();
-}
-document.addEventListener('click',e=>{const button=e.target.closest('[data-film]');if(button)openFilm(button.dataset.film);});
-$('#close-player').addEventListener('click',()=>dialog.close());
-dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
-dialog.addEventListener('close',()=>{cleanupPlayer();document.body.classList.remove('modal-open');motion?.start();lastFocus?.focus({preventScroll:true});});
-$('#retry-player').addEventListener('click',()=>{if(current)startFilm(current);});
-player.addEventListener('error',()=>{if(!dialog.open||!player.getAttribute('src'))return;if(!usingFallback&&current)playMP4(current);else $('#player-error').hidden=false;});
+const portfolioPlayer=window.createPortfolioPlayer({
+ dialog:$('#player-dialog'),player:$('#film-player'),projects,
+ onOpen:()=>motion?.stop(),onClose:()=>motion?.start()
+});
+document.addEventListener('click',e=>{const button=e.target.closest('[data-film]');if(button)portfolioPlayer.open(button.dataset.film);});
 
 document.querySelectorAll('.copy-profile').forEach(button=>button.addEventListener('click',async()=>{
  const area=button.closest('.social-access,.footer-social-tools');

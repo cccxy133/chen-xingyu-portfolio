@@ -373,3 +373,11 @@ html:not(.motion-off) .experience-list>.resume-entry:not(:last-child){will-chang
 @media(max-width:760px){
  .chapter-active .chapter-cover figcaption{font-size:12px;line-height:1.6;left:12px;right:12px;bottom:14px}
 }
+
+/* Playback quality stays explicit; no video is downloaded before selection. */
+.player-toolbar{display:flex;justify-content:flex-end;margin:0 0 10px;min-height:0}
+#player-quality-control{font-size:13px;color:var(--text-3)}
+#player-quality-control[hidden]{display:none}
+#player-quality{margin-left:8px;padding:7px 11px;border:1px solid #4a525a;border-radius:8px;background:#151719;color:var(--text);font:inherit}
+#player-quality:focus-visible{outline:2px solid #b9d4e5;outline-offset:3px}
+#player-loading,#player-error{font-size:13px;line-height:1.6;color:var(--text-3);margin-top:10px}
